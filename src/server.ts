@@ -4,17 +4,17 @@
  *
  * MCP Server for ClickUp integration
  */
-import { Server } from "@modelcontextprotocol/sdk/server";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ListPromptsRequestSchema,
   GetPromptRequestSchema,
   ListResourcesRequestSchema,
-} from "@modelcontextprotocol/sdk/types";
-import { createClickUpServices } from "./services/clickup";
-import config from "./config";
-import { workspaceHierarchyTool, handleGetWorkspaceHierarchy } from "./tools/workspace";
+} from "@modelcontextprotocol/sdk/types.js";
+import { createClickUpServices } from "./services/clickup/index.js";
+import config from "./config.js";
+import { workspaceHierarchyTool, handleGetWorkspaceHierarchy } from "./tools/workspace.js";
 import {
   createTaskTool,
   updateTaskTool,
@@ -57,27 +57,27 @@ import {
   handleAddTimeEntry,
   handleDeleteTimeEntry,
   handleGetCurrentTimeEntry
-} from "./tools/task";
+} from "./tools/task/index.js";
 import {
   createListTool, handleCreateList,
   createListInFolderTool, handleCreateListInFolder,
   getListTool, handleGetList,
   updateListTool, handleUpdateList,
   deleteListTool, handleDeleteList
-} from "./tools/list";
+} from "./tools/list.js";
 import {
   createFolderTool, handleCreateFolder,
   getFolderTool, handleGetFolder,
   updateFolderTool, handleUpdateFolder,
   deleteFolderTool, handleDeleteFolder
-} from "./tools/folder";
+} from "./tools/folder.js";
 import {
   getSpaceTagsTool, handleGetSpaceTags,
   addTagToTaskTool, handleAddTagToTask,
   removeTagFromTaskTool, handleRemoveTagFromTask
-} from "./tools/tag";
-import { Logger } from "./logger";
-import { clickUpServices } from "./services/shared";
+} from "./tools/tag.js";
+import { Logger } from "./logger.js";
+import { clickUpServices } from "./services/shared.js";
 
 // Create a logger instance for server
 const logger = new Logger('Server');
