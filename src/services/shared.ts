@@ -1,7 +1,6 @@
-import { MCPTool } from "@modelcontextprotocol/sdk/types.js";
+import { Tool } from "@modelcontextprotocol/sdk/types.js";
 
-export const clickUpServices: Record<string, MCPTool> = {
-  // You can add your ClickUp tools here
+export const clickUpServices: Record<string, Tool> = {
   echo: {
     description: "Echo test tool",
     parameters: {
@@ -14,7 +13,7 @@ export const clickUpServices: Record<string, MCPTool> = {
       },
       required: ["message"]
     },
-    handler: async (params) => {
+    handler: async (params: { message: string }) => {
       return { message: params.message };
     }
   }
