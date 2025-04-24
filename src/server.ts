@@ -1,10 +1,10 @@
-import { Server as MCPServer } from "@modelcontextprotocol/sdk";
-import { clickUpServices } from "./services/shared.js";
+import { Server as MCPServer } from '@modelcontextprotocol/sdk/server';
+import { Transport } from '@modelcontextprotocol/sdk/transport';
+import { Logger } from '@modelcontextprotocol/sdk/logger';
 
-export const server = new MCPServer();
-
-export async function configureServer() {
-  for (const [name, service] of Object.entries(clickUpServices)) {
-    server.addTool(name, service);
-  }
+export function configureServer(transports: Transport[], logger: Logger) {
+  return new MCPServer({
+    transports,
+    logger,
+  });
 }
