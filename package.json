@@ -1,7 +1,6 @@
 {
   "name": "clickup-mcp-server",
   "version": "1.0.0",
-  "description": "ClickUp MCP Server",
   "type": "module",
   "main": "build/index.js",
   "scripts": {
