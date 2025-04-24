@@ -4,17 +4,17 @@
  *
  * MCP Server for ClickUp integration
  */
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { Server } from "@modelcontextprotocol/sdk/server";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ListPromptsRequestSchema,
   GetPromptRequestSchema,
   ListResourcesRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { createClickUpServices } from "./services/clickup/index.js";
-import config from "./config.js";
-import { workspaceHierarchyTool, handleGetWorkspaceHierarchy } from "./tools/workspace.js";
+} from "@modelcontextprotocol/sdk/types";
+import { createClickUpServices } from "./services/clickup";
+import config from "./config";
+import { workspaceHierarchyTool, handleGetWorkspaceHierarchy } from "./tools/workspace";
 import {
   createTaskTool,
   updateTaskTool,
@@ -57,30 +57,35 @@ import {
   handleAddTimeEntry,
   handleDeleteTimeEntry,
   handleGetCurrentTimeEntry
-} from "./tools/task/index.js";
+} from "./tools/task";
 import {
   createListTool, handleCreateList,
   createListInFolderTool, handleCreateListInFolder,
   getListTool, handleGetList,
   updateListTool, handleUpdateList,
   deleteListTool, handleDeleteList
-} from "./tools/list.js";
+} from "./tools/list";
 import {
   createFolderTool, handleCreateFolder,
   getFolderTool, handleGetFolder,
   updateFolderTool, handleUpdateFolder,
   deleteFolderTool, handleDeleteFolder
-} from "./tools/folder.js";
+} from "./tools/folder";
 import {
   getSpaceTagsTool, handleGetSpaceTags,
   addTagToTaskTool, handleAddTagToTask,
   removeTagFromTaskTool, handleRemoveTagFromTask
-} from "./tools/tag.js";
-import { Logger } from "./logger.js";
-import { clickUpServices } from "./services/shared.js";
+} from "./tools/tag";
+import { log } from "./logger";
+import { clickUpServices } from "./services/shared";
 
 // Create a logger instance for server
-const logger = new Logger('Server');
+const logger = {
+  info: (message: string, data?: any) => log('info', `[Server] ${message}`, data),
+  debug: (message: string, data?: any) => log('debug', `[Server] ${message}`, data),
+  error: (message: string, data?: any) => log('error', `[Server] ${message}`, data),
+  warn: (message: string, data?: any) => log('warn', `[Server] ${message}`, data)
+};
 
 // Use existing services from shared module instead of creating new ones
 const { workspace } = clickUpServices;
