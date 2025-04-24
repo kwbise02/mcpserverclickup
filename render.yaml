@@ -3,10 +3,12 @@ services:
     name: clickup-mcp-server
     env: node
     buildCommand: npm install && npm run build
-    startCommand: USE_HTTP=true node -r dotenv/config build/index.js
+    startCommand: USE_HTTP=true node build/index.js
     envVars:
       - key: USE_HTTP
         value: "true"
+      - key: PORT
+        value: "10000"
       - key: CLICKUP_API_KEY
         sync: false
       - key: CLICKUP_TEAM_ID
