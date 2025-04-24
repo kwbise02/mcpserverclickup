@@ -23,21 +23,20 @@
  * For full documentation and usage examples, please refer to the README.md file.
  */
 
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { configureServer, server } from "./server.js";
-import { clickUpServices } from "./services/shared.js";
-import { info, error } from "./logger.js";
-import config from "./config.js";
-import * as path from 'path';
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/transport";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/transport";
+import { configureServer, server } from "./server";
+import { clickUpServices } from "./services/shared";
+import { info, error } from "./logger";
+import config from "./config";
+import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import express, { Request, Response } from 'express';
-import * as crypto from 'crypto';
-import { Request as MCPRequest } from "@modelcontextprotocol/sdk/types.js";
+import express from 'express';
+import { randomUUID } from 'crypto';
+import { isInitializeRequest } from "@modelcontextprotocol/sdk/types";
 
 // Get directory name for module paths
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
@@ -72,23 +71,22 @@ async function main() {
 
     // Check if we should use HTTP transport
     const useHttp = process.env.USE_HTTP === 'true';
-    const port = Number(process.env.PORT || 3000);
+    const port = parseInt(process.env.PORT || '3000', 10);
     
     if (useHttp) {
       console.log("Using HTTP transport");
       const app = express();
-      app.use(express.json());
       
       // Health check endpoint
-      app.get('/health', (req: Request, res: Response) => {
+      app.get('/health', (req, res) => {
         res.json({ status: 'ok' });
       });
 
       // Map to store transports by session ID
-      const transports: Record<string, StreamableHTTPServerTransport> = {};
+      const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
-      // Handle POST requests for client-server communication
-      app.post('/mcp', async (req: Request, res: Response) => {
+      // Handle POST requests for client-to-server communication
+      app.post('/mcp', async (req, res) => {
         console.log('Received POST request to /mcp');
         
         // Check for existing session ID
@@ -97,18 +95,22 @@ async function main() {
 
         try {
           if (sessionId && transports[sessionId]) {
+            // Reuse existing transport
             transport = transports[sessionId];
             console.log('Using existing transport for session:', sessionId);
-          } else if (!sessionId && req.body?.jsonrpc === '2.0' && req.body?.method === 'initialize') {
+          } else if (!sessionId && isInitializeRequest(req.body)) {
             console.log('Creating new transport for initialization request');
+            // New initialization request
             transport = new StreamableHTTPServerTransport({
-              sessionIdGenerator: () => crypto.randomUUID(),
+              sessionIdGenerator: () => randomUUID(),
               onsessioninitialized: (sessionId) => {
+                // Store the transport by session ID
                 transports[sessionId] = transport;
                 console.log('New session initialized:', sessionId);
               }
             });
 
+            // Clean up transport when closed
             transport.onclose = () => {
               if (transport.sessionId) {
                 delete transports[transport.sessionId];
@@ -131,6 +133,7 @@ async function main() {
             return;
           }
 
+          // Handle the request
           await transport.handleRequest(req, res, req.body);
         } catch (error) {
           console.error('Error handling request:', error);
@@ -148,7 +151,7 @@ async function main() {
       });
 
       // Reusable handler for GET and DELETE requests
-      const handleSessionRequest = async (req: Request, res: Response) => {
+      const handleSessionRequest = async (req: express.Request, res: express.Response) => {
         console.log(`Received ${req.method} request to /mcp`);
         const sessionId = req.headers['mcp-session-id'] as string | undefined;
         if (!sessionId || !transports[sessionId]) {
@@ -161,9 +164,13 @@ async function main() {
         await transport.handleRequest(req, res);
       };
 
+      // Handle GET requests for server-to-client notifications via SSE
       app.get('/mcp', handleSessionRequest);
+
+      // Handle DELETE requests for session termination
       app.delete('/mcp', handleSessionRequest);
       
+      // Start HTTP server
       app.listen(port, '0.0.0.0', () => {
         console.log(`HTTP server listening on http://0.0.0.0:${port}`);
         console.log('Environment variables loaded:');
@@ -171,6 +178,7 @@ async function main() {
         console.log('- CLICKUP_TEAM_ID:', process.env.CLICKUP_TEAM_ID ? '[Set]' : '[Not Set]');
       });
     } else {
+      // Connect using stdio transport
       console.log("Using stdio transport");
       const transport = new StdioServerTransport();
       await server.connect(transport);
