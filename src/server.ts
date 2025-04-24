@@ -1,4 +1,4 @@
-import { MCPServer } from "@/modelcontextprotocol/sdk/server.js";
+import { MCPServer } from "@modelcontextprotocol/sdk/server.js";
 import { clickUpServices } from "./services/shared.js";
 
 export const server = new MCPServer();
