@@ -33,7 +33,7 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import express, { Request, Response } from 'express';
 import * as crypto from 'crypto';
-import { MCPRequest } from "@modelcontextprotocol/sdk/types.js";
+import { Request as MCPRequest } from "@modelcontextprotocol/sdk/types.js";
 
 // Get directory name for module paths
 const __filename = fileURLToPath(import.meta.url);
