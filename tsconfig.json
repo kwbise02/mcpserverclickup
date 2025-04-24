@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "commonjs",
+    "moduleResolution": "node",
     "outDir": "build",
     "rootDir": "./src",
     "strict": false,
@@ -10,9 +10,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "declaration": true
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
