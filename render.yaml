@@ -1,15 +1,18 @@
-services:
-  - type: web
-    name: clickup-mcp-server
-    env: node
-    buildCommand: npm install && npm run build
-    startCommand: USE_HTTP=true node build/index.js
-    envVars:
-      - key: USE_HTTP
-        value: "true"
-      - key: PORT
-        value: "10000"
-      - key: CLICKUP_API_KEY
-        sync: false
-      - key: CLICKUP_TEAM_ID
-        sync: false
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "outDir": "build",
+    "rootDir": "./src",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "resolveJsonModule": true,
+    "allowJs": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
