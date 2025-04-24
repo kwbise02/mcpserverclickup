@@ -1,4 +1,99 @@
-node_modules/
-build/
-.env
-*.log
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import express from 'express';
+import { randomUUID } from 'crypto';
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error("Uncaught Exception:", err);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+async function main() {
+  try {
+    console.log("Starting ClickUp MCP Server...");
+    
+    // Check if we should use HTTP transport
+    const useHttp = process.env.USE_HTTP === 'true';
+    const port = parseInt(process.env.PORT || '3000', 10);
+    
+    if (useHttp) {
+      console.log("Using HTTP transport");
+      const app = express();
+      
+      // Health check endpoint
+      app.get('/health', (req, res) => {
+        res.json({ status: 'ok' });
+      });
+
+      // Map to store transports by session ID
+      const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
+      
+      app.post('/mcp', async (req, res) => {
+        try {
+          const sessionId = req.headers['mcp-session-id'] as string;
+          let transport = transports[sessionId];
+          
+          if (!transport) {
+            transport = new StreamableHTTPServerTransport();
+            transports[sessionId] = transport;
+          }
+          
+          await transport.handleRequest(req, res);
+        } catch (error) {
+          console.error('Error handling request:', error);
+          res.status(500).json({
+            jsonrpc: '2.0',
+            error: {
+              code: -32603,
+              message: 'Internal server error',
+            },
+            id: null,
+          });
+        }
+      });
+
+      // Handle GET requests for server-to-client notifications
+      app.get('/mcp', async (req, res) => {
+        const sessionId = req.headers['mcp-session-id'] as string;
+        if (!sessionId || !transports[sessionId]) {
+          res.status(400).send('Invalid or missing session ID');
+          return;
+        }
+        await transports[sessionId].handleRequest(req, res);
+      });
+
+      // Handle session cleanup
+      app.delete('/mcp', async (req, res) => {
+        const sessionId = req.headers['mcp-session-id'] as string;
+        if (sessionId && transports[sessionId]) {
+          delete transports[sessionId];
+        }
+        res.status(200).send('Session terminated');
+      });
+      
+      // Start HTTP server
+      app.listen(port, '0.0.0.0', () => {
+        console.log(`HTTP server listening on http://0.0.0.0:${port}`);
+        console.log('Environment variables:');
+        console.log('- CLICKUP_API_KEY:', process.env.CLICKUP_API_KEY ? '[Set]' : '[Not Set]');
+        console.log('- CLICKUP_TEAM_ID:', process.env.CLICKUP_TEAM_ID ? '[Set]' : '[Not Set]');
+      });
+    } else {
+      // Use stdio transport
+      console.log("Using stdio transport");
+      const transport = new StdioServerTransport();
+      // Add server connection logic here
+    }
+  } catch (err) {
+    console.error("Error during server startup:", err);
+    process.exit(1);
+  }
+}
+
+main();
