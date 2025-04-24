@@ -23,17 +23,13 @@
  * For full documentation and usage examples, please refer to the README.md file.
  */
 
+// Update these import lines at the top of src/index.ts
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { configureServer, server } from "./server.js";
 import { clickUpServices } from "./services/shared.js";
 import { info, error } from "./logger.js";
 import config from "./config.js";
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import express from 'express';
-import { randomUUID } from 'crypto';
-import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 
 // Get directory name for module paths
 const __dirname = dirname(fileURLToPath(import.meta.url));
